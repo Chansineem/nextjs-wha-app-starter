@@ -1,0 +1,12 @@
+# <type>: <imperative summary, ≤72 chars, no trailing period>
+# type = feat | fix | docs | refactor | chore | test | style | perf
+#
+# --- blank line above body ---
+#
+# Body: explain WHY this change is needed, not what changed (the diff
+# shows what). Wrap at ~72 chars.
+#
+# --- blank line above footer ---
+#
+# Footer (optional): Fixes #123 / Closes #45 / BREAKING CHANGE: ...
+# Co-Authored-By: Name <email>

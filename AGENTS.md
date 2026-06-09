@@ -56,3 +56,20 @@ This is a Thai-language e-commerce / course app on the Next.js App Router.
 
 ### UI
 - shadcn/ui (style `radix-luma`, base color `mist`, RSC enabled, icons from **remixicon** + lucide). Generated primitives live in `src/components/ui/` — re-add/update via the `shadcn` CLI rather than hand-rolling. Path alias `@/*` → `src/*`. Tailwind v4 (PostCSS plugin, no `tailwind.config`; theme in `src/app/globals.css`).
+
+## Commit conventions
+
+Follow [Conventional Commits](https://www.conventionalcommits.org). A template is configured at `.gitmessage` (`git config commit.template .gitmessage`).
+
+```
+<type>: <imperative summary, ≤72 chars, no trailing period>
+                                    ← blank line
+<body: explain WHY, not what — the diff already shows what. Wrap ~72 chars.>
+                                    ← blank line
+<footer: Fixes #123 / BREAKING CHANGE: ... / Co-Authored-By: ...>
+```
+
+- **type** — one of `feat`, `fix`, `docs`, `refactor`, `chore`, `test`, `style`, `perf`.
+- **Imperative mood** — "Add", "Fix", "Move" (not "Added"/"Adds").
+- **Atomic commits** — one logical change per commit. Stage specific paths (`git add <files>`), not `git add .`, so unrelated working-tree changes don't leak in.
+- Don't mix reformatting with logic changes in the same commit.
