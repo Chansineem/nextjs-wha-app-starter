@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 const registerSchema = z
   .object({
@@ -51,6 +52,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 
 export default function RegisterForm() {
   const router = useRouter();
+  const [serverError, setServerError] = useState("");
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -62,17 +64,26 @@ export default function RegisterForm() {
   })
 
   async function onSubmit(data: RegisterFormValues) {
+     setServerError("");
      await authClient.signUp.email({
       name: data.name,
       email: data.email,
       password: data.password,
      }, {
         onSuccess: () => {
-          alert('สมัครสมาชิกสำเร็จ');
           router.replace('/login');
         },
         onError: (ctx) => {
-          alert(JSON.stringify(ctx.error));
+          const code = ctx.error?.code;
+          if (
+            code === "USER_ALREADY_EXISTS" ||
+            code === "FAILED_TO_CREATE_USER" ||
+            ctx.error?.status === 422
+          ) {
+            setServerError("อีเมลนี้ถูกใช้งานแล้ว กรุณาเข้าสู่ระบบหรือใช้อีเมลอื่น");
+          } else {
+            setServerError(ctx.error?.message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+          }
         }
      });
   }
@@ -173,6 +184,14 @@ export default function RegisterForm() {
                 </Field>
               )}
             />
+            {serverError && (
+              <p
+                role="alert"
+                className="text-sm font-medium text-destructive"
+              >
+                {serverError}
+              </p>
+            )}
           </FieldGroup>
         </form>
       </CardContent>
