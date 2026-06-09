@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ER Diagram — wha_ecommerce</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --ink: #1f2937;
+    --muted: #6b7280;
+    --border: #d8dee9;
+    --head: #2563eb;
+    --head-2: #1e40af;
+    --pk: #f59e0b;
+    --pk-bg: #fff7e6;
+    --fk: #db2777;
+    --fk-bg: #fdeef6;
+    --row-alt: #f8fafc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "IBM Plex Sans Thai", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    padding: 36px 20px 70px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header.page { margin-bottom: 22px; text-align: center; }
+  header.page h1 { font-size: 30px; margin: 0 0 6px; }
+  header.page h1 code { font-family: "JetBrains Mono", monospace; color: var(--head); font-size: .8em; }
+  header.page p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  /* ---------- Tabs ---------- */
+  .tabs {
+    display: flex; gap: 6px; justify-content: center;
+    margin: 0 auto 28px; padding: 6px;
+    background: #e9edf5; border: 1px solid var(--border); border-radius: 12px;
+    width: max-content;
+  }
+  .tabs button {
+    font-family: inherit; font-size: 15px; font-weight: 600;
+    color: var(--muted); background: transparent; border: none; cursor: pointer;
+    padding: 9px 22px; border-radius: 8px; transition: all .15s ease;
+  }
+  .tabs button:hover { color: var(--ink); }
+  .tabs button.active {
+    color: #fff; background: linear-gradient(180deg, var(--head), var(--head-2));
+    box-shadow: 0 6px 14px -6px rgba(37,99,235,.6);
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fade .25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- Shared bits ---------- */
+  .tag {
+    display: inline-block; font-family: "JetBrains Mono", monospace;
+    font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 5px; line-height: 1.4;
+  }
+  .tag.pk { color: var(--pk); background: var(--pk-bg); border: 1px solid #f5d488; }
+  .tag.fk { color: var(--fk); background: var(--fk-bg); border: 1px solid #f3b9d6; }
+
+  /* ---------- Tab 1: ER ---------- */
+  .legend {
+    display: flex; gap: 22px; justify-content: center; flex-wrap: wrap;
+    margin: 0 0 26px; font-size: 13px; color: var(--muted);
+  }
+  .legend span.item { display: inline-flex; align-items: center; gap: 7px; }
+  .legend .ln { width: 26px; height: 0; border-top: 3px solid #7c3aed; border-radius: 3px; }
+
+  .canvas { position: relative; }
+  #wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: visible; }
+
+  .grid {
+    position: relative; z-index: 1;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 30px 64px; align-items: start;
+  }
+  @media (max-width: 920px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+
+  .entity {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; box-shadow: 0 6px 18px -12px rgba(30,64,175,.4);
+  }
+  .entity > .title {
+    background: linear-gradient(180deg, var(--head), var(--head-2));
+    color: #fff; padding: 11px 16px; font-weight: 600; font-size: 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .entity > .title .count { font-size: 12px; font-weight: 500; opacity: .85; font-family: "JetBrains Mono", monospace; }
+
+  .group-label {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 10px;
+    margin: 10px 0 -8px; font-size: 14px; font-weight: 600; color: var(--muted);
+  }
+  .group-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  .group-label .ic { font-size: 16px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 9px 14px; border-top: 1px solid #eef1f6; font-size: 14px; vertical-align: middle; }
+  tr:nth-child(even) td { background: var(--row-alt); }
+  td.key { width: 54px; text-align: center; }
+  td.field { font-weight: 500; }
+  td.field.iskey { font-weight: 600; }
+  td.type {
+    font-family: "JetBrains Mono", monospace; font-size: 12.5px;
+    color: var(--muted); text-align: right; white-space: nowrap;
+  }
+
+  /* ---------- Tab 2: Workflow ---------- */
+  .flow-stage { margin-bottom: 40px; }
+  .flow-stage > h2 {
+    font-size: 18px; margin: 0 0 4px; display: flex; align-items: center; gap: 10px;
+  }
+  .flow-stage > h2 .num {
+    width: 28px; height: 28px; flex: 0 0 28px; border-radius: 50%;
+    background: linear-gradient(180deg, var(--head), var(--head-2)); color: #fff;
+    font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .flow-stage > .lead { margin: 0 0 18px 38px; color: var(--muted); font-size: 14px; }
+
+  .flow-row {
+    display: flex; align-items: stretch; flex-wrap: wrap; gap: 0;
+    margin-left: 38px;
+  }
+  .node {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+    padding: 0; width: 232px; overflow: hidden;
+    box-shadow: 0 6px 18px -12px rgba(30,64,175,.4);
+  }
+  .node .nhead {
+    padding: 10px 14px; font-weight: 600; font-size: 15px; color: #fff;
+    font-family: "JetBrains Mono", monospace;
+    background: linear-gradient(180deg, var(--head), var(--head-2));
+  }
+  .node.accent .nhead { background: linear-gradient(180deg, #7c3aed, #5b21b6); }
+  .node.green .nhead { background: linear-gradient(180deg, #16a34a, #15803d); }
+  .node .nbody { padding: 12px 14px; }
+  .node .nbody p { margin: 0 0 8px; font-size: 13.5px; line-height: 1.5; }
+  .node .nbody p:last-child { margin-bottom: 0; }
+  .node .keyline { font-size: 12px; color: var(--muted); }
+  .node .keyline .mono { font-family: "JetBrains Mono", monospace; color: #b45309; }
+
+  .arrow {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    align-self: center; padding: 0 6px; min-width: 64px;
+  }
+  .arrow .line { font-size: 24px; color: #7c3aed; line-height: 1; }
+  .arrow .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; text-align: center; white-space: nowrap; }
+  @media (max-width: 760px) {
+    .flow-row { flex-direction: column; align-items: flex-start; margin-left: 0; }
+    .flow-stage > .lead { margin-left: 0; }
+    .node { width: 100%; max-width: 340px; }
+    .arrow { flex-direction: row; min-width: 0; padding: 6px 0 6px 20px; }
+    .arrow .line { transform: rotate(90deg); }
+    .arrow .lbl { margin: 0 0 0 8px; }
+  }
+
+  /* status lifecycle */
+  .lifecycle { display: flex; align-items: center; flex-wrap: wrap; gap: 0; margin-left: 38px; }
+  .pill {
+    padding: 10px 20px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    font-family: "JetBrains Mono", monospace; border: 2px solid;
+  }
+  .pill.p1 { color: #b45309; background: #fff7e6; border-color: #f5d488; }
+  .pill.p2 { color: #1d4ed8; background: #eff6ff; border-color: #bfdbfe; }
+  .pill.p3 { color: #047857; background: #ecfdf5; border-color: #a7f3d0; }
+  .lifecycle .step-arrow { font-size: 22px; color: var(--muted); padding: 0 14px; }
+  @media (max-width: 760px) {
+    .lifecycle { flex-direction: column; align-items: flex-start; margin-left: 0; }
+    .lifecycle .step-arrow { transform: rotate(90deg); padding: 6px 0; }
+  }
+
+  .note-card {
+    margin: 8px 0 0 38px; max-width: 720px;
+    background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 10px;
+    padding: 12px 16px; font-size: 13.5px; color: #4c1d95; line-height: 1.55;
+  }
+  .note-card .mono { font-family: "JetBrains Mono", monospace; }
+
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 30px; }
+  footer code { font-family: "JetBrains Mono", monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <h1>Database Map · <code>wha_ecommerce</code></h1>
+    <p>10 ตาราง · 2 กลุ่ม (ร้านค้า + ระบบยืนยันตัวตน) — ดูได้ทั้งโครงสร้าง (ER) และลำดับการทำงาน (Workflow)</p>
+  </header>
+
+  <div class="tabs">
+    <button id="tab-er" class="active" onclick="showTab('er')">ER Diagram</button>
+    <button id="tab-wf" onclick="showTab('wf')">Workflow</button>
+  </div>
+
+  <!-- ============ TAB 1: ER DIAGRAM ============ -->
+  <section id="panel-er" class="panel active">
+    <div class="legend">
+      <span class="item"><span class="tag pk">PK</span> Primary Key</span>
+      <span class="item"><span class="tag fk">FK</span> Foreign Key</span>
+      <span class="item"><span class="ln"></span> ความสัมพันธ์ 1 : N (●=1, ⋔=N)</span>
+    </div>
+
+    <div class="canvas">
+      <svg id="wires"></svg>
+      <div class="grid">
+
+        <div class="group-label"><span class="ic">🛒</span> ร้านค้า (E-commerce)</div>
+
+        <div class="entity" id="categories">
+          <div class="title">categories <span class="count">5 rows</span></div>
+          <table>
+            <tr data-anchor="categories.id"><td class="key"><span class="tag pk">PK</span></td><td class="field iskey">id</td><td class="type">INT</td></tr>
+            <tr><td class="key"></td><td class="field">name</td><td class="type">VARCHAR(255)</td></tr>
+          </table>
+        </div>
+
+        <div class="entity" id="products">
+          <div class="title">products <span class="count">5 rows</span></div>
+          <table>
+            <tr data-anchor="products.id"><td class="key"><span class="tag pk">PK</span></td><td class="field iskey">id</td><td class="type">INT</td></tr>
+            <tr><td class="key"></td><td class="field">name</td><td class="type">VARCHAR(255)</td></tr>
+            <tr><td class="key"></td><td class="field">description</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">price</td><td class="type">DOUBLE</td></tr>
+            <tr data-anchor="products.category_id"><td class="key"><span class="tag fk">FK</span></td><td class="field iskey">category_id</td><td class="type">INT</td></tr>
+          </table>
+        </div>
+
+        <div class="entity" id="product_images">
+          <div class="title">product_images <span class="count">5 rows</span></div>
+          <table>
+            <tr data-anchor="product_images.id"><td class="key"><span class="tag pk">PK</span></td><td class="field iskey">id</td><td class="type">INT</td></tr>
+            <tr data-anchor="product_images.product_id"><td class="key"><span class="tag fk">FK</span></td><td class="field iskey">product_id</td><td class="type">INT</td></tr>
+            <tr><td class="key"></td><td class="field">image_name</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">created_at</td><td class="type">TIMESTAMP</td></tr>
+          </table>
+        </div>
+
+        <div class="entity" id="customers">
+          <div class="title">customers <span class="count">5 rows</span></div>
+          <table>
+            <tr data-anchor="customers.id"><td class="key"><span class="tag pk">PK</span></td><td class="field iskey">id</td><td class="type">INT</td></tr>
+            <tr><td class="key"></td><td class="field">name</td><td class="type">VARCHAR(255)</td></tr>
+            <tr><td class="key"></td><td class="field">address</td><td class="type">VARCHAR(500)</td></tr>
+            <tr><td class="key"></td><td class="field">phone</td><td class="type">VARCHAR(20)</td></tr>
+          </table>
+        </div>
+
+        <div class="entity" id="orders">
+          <div class="title">orders <span class="count">5 rows</span></div>
+          <table>
+            <tr data-anchor="orders.id"><td class="key"><span class="tag pk">PK</span></td><td class="field iskey">id</td><td class="type">INT</td></tr>
+            <tr><td class="key"></td><td class="field">date</td><td class="type">DATETIME</td></tr>
+            <tr data-anchor="orders.customer_id"><td class="key"><span class="tag fk">FK</span></td><td class="field iskey">customer_id</td><td class="type">INT</td></tr>
+            <tr><td class="key"></td><td class="field">status</td><td class="type">ENUM</td></tr>
+            <tr><td class="key"></td><td class="field">total_amount</td><td class="type">DOUBLE</td></tr>
+          </table>
+        </div>
+
+        <div class="entity" id="order_items">
+          <div class="title">order_items <span class="count">10 rows</span></div>
+          <table>
+            <tr data-anchor="order_items.id"><td class="key"><span class="tag pk">PK</span></td><td class="field iskey">id</td><td class="type">INT</td></tr>
+            <tr data-anchor="order_items.order_id"><td class="key"><span class="tag fk">FK</span></td><td class="field iskey">order_id</td><td class="type">INT</td></tr>
+            <tr data-anchor="order_items.product_id"><td class="key"><span class="tag fk">FK</span></td><td class="field iskey">product_id</td><td class="type">INT</td></tr>
+            <tr><td class="key"></td><td class="field">quantity</td><td class="type">INT</td></tr>
+            <tr><td class="key"></td><td class="field">price</td><td class="type">DOUBLE</td></tr>
+          </table>
+        </div>
+
+        <div class="group-label"><span class="ic">🔐</span> ระบบยืนยันตัวตน (better-auth)</div>
+
+        <div class="entity" id="user">
+          <div class="title">user <span class="count">0 rows</span></div>
+          <table>
+            <tr data-anchor="user.id"><td class="key"><span class="tag pk">PK</span></td><td class="field iskey">id</td><td class="type">VARCHAR(191)</td></tr>
+            <tr><td class="key"></td><td class="field">name</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">email</td><td class="type">VARCHAR(191)</td></tr>
+            <tr><td class="key"></td><td class="field">emailVerified</td><td class="type">TINYINT(1)</td></tr>
+            <tr><td class="key"></td><td class="field">image</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">createdAt</td><td class="type">DATETIME(3)</td></tr>
+            <tr><td class="key"></td><td class="field">updatedAt</td><td class="type">DATETIME(3)</td></tr>
+          </table>
+        </div>
+
+        <div class="entity" id="session">
+          <div class="title">session <span class="count">0 rows</span></div>
+          <table>
+            <tr data-anchor="session.id"><td class="key"><span class="tag pk">PK</span></td><td class="field iskey">id</td><td class="type">VARCHAR(191)</td></tr>
+            <tr><td class="key"></td><td class="field">expiresAt</td><td class="type">DATETIME(3)</td></tr>
+            <tr><td class="key"></td><td class="field">token</td><td class="type">VARCHAR(191)</td></tr>
+            <tr><td class="key"></td><td class="field">createdAt</td><td class="type">DATETIME(3)</td></tr>
+            <tr><td class="key"></td><td class="field">updatedAt</td><td class="type">DATETIME(3)</td></tr>
+            <tr><td class="key"></td><td class="field">ipAddress</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">userAgent</td><td class="type">TEXT</td></tr>
+            <tr data-anchor="session.userId"><td class="key"><span class="tag fk">FK</span></td><td class="field iskey">userId</td><td class="type">VARCHAR(191)</td></tr>
+          </table>
+        </div>
+
+        <div class="entity" id="account">
+          <div class="title">account <span class="count">0 rows</span></div>
+          <table>
+            <tr data-anchor="account.id"><td class="key"><span class="tag pk">PK</span></td><td class="field iskey">id</td><td class="type">VARCHAR(191)</td></tr>
+            <tr><td class="key"></td><td class="field">accountId</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">providerId</td><td class="type">TEXT</td></tr>
+            <tr data-anchor="account.userId"><td class="key"><span class="tag fk">FK</span></td><td class="field iskey">userId</td><td class="type">VARCHAR(191)</td></tr>
+            <tr><td class="key"></td><td class="field">accessToken</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">refreshToken</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">idToken</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">accessTokenExpiresAt</td><td class="type">DATETIME(3)</td></tr>
+            <tr><td class="key"></td><td class="field">refreshTokenExpiresAt</td><td class="type">DATETIME(3)</td></tr>
+            <tr><td class="key"></td><td class="field">scope</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">password</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">createdAt</td><td class="type">DATETIME(3)</td></tr>
+            <tr><td class="key"></td><td class="field">updatedAt</td><td class="type">DATETIME(3)</td></tr>
+          </table>
+        </div>
+
+        <div class="entity" id="verification">
+          <div class="title">verification <span class="count">0 rows</span></div>
+          <table>
+            <tr data-anchor="verification.id"><td class="key"><span class="tag pk">PK</span></td><td class="field iskey">id</td><td class="type">VARCHAR(191)</td></tr>
+            <tr><td class="key"></td><td class="field">identifier</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">value</td><td class="type">TEXT</td></tr>
+            <tr><td class="key"></td><td class="field">expiresAt</td><td class="type">DATETIME(3)</td></tr>
+            <tr><td class="key"></td><td class="field">createdAt</td><td class="type">DATETIME(3)</td></tr>
+            <tr><td class="key"></td><td class="field">updatedAt</td><td class="type">DATETIME(3)</td></tr>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 2: WORKFLOW ============ -->
+  <section id="panel-wf" class="panel">
+
+    <!-- Stage 1 -->
+    <div class="flow-stage">
+      <h2><span class="num">1</span> ตั้งค่าแคตตาล็อกสินค้า</h2>
+      <p class="lead">ผู้ดูแลร้านเตรียมข้อมูลสินค้าก่อนเปิดขาย — จัดหมวดหมู่ → เพิ่มสินค้า → แนบรูป</p>
+      <div class="flow-row">
+        <div class="node">
+          <div class="nhead">categories</div>
+          <div class="nbody">
+            <p>สร้างหมวดหมู่สินค้า เช่น สมาร์ทโฟน, แล็ปท็อป</p>
+            <p class="keyline">ออก <span class="tag pk">PK</span> <span class="mono">id</span></p>
+          </div>
+        </div>
+        <div class="arrow"><span class="line">→</span><span class="lbl">category_id</span></div>
+        <div class="node">
+          <div class="nhead">products</div>
+          <div class="nbody">
+            <p>เพิ่มสินค้าเข้าหมวดหมู่ พร้อมราคาและรายละเอียด</p>
+            <p class="keyline"><span class="tag fk">FK</span> <span class="mono">category_id</span> → categories</p>
+          </div>
+        </div>
+        <div class="arrow"><span class="line">→</span><span class="lbl">product_id</span></div>
+        <div class="node">
+          <div class="nhead">product_images</div>
+          <div class="nbody">
+            <p>แนบรูปสินค้าได้หลายรูปต่อ 1 สินค้า</p>
+            <p class="keyline"><span class="tag fk">FK</span> <span class="mono">product_id</span> → products</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 2 -->
+    <div class="flow-stage">
+      <h2><span class="num">2</span> ลูกค้าสั่งซื้อ</h2>
+      <p class="lead">ลูกค้าเปิดคำสั่งซื้อ แล้วระบบบันทึกแต่ละรายการสินค้าลงในบิล</p>
+      <div class="flow-row">
+        <div class="node green">
+          <div class="nhead">customers</div>
+          <div class="nbody">
+            <p>ข้อมูลลูกค้า: ชื่อ ที่อยู่ เบอร์โทร</p>
+            <p class="keyline">ออก <span class="tag pk">PK</span> <span class="mono">id</span></p>
+          </div>
+        </div>
+        <div class="arrow"><span class="line">→</span><span class="lbl">customer_id</span></div>
+        <div class="node">
+          <div class="nhead">orders</div>
+          <div class="nbody">
+            <p>เปิดบิล 1 ใบต่อการสั่งซื้อ เก็บวันที่/สถานะ/ยอดรวม</p>
+            <p class="keyline"><span class="tag fk">FK</span> <span class="mono">customer_id</span> → customers</p>
+          </div>
+        </div>
+        <div class="arrow"><span class="line">→</span><span class="lbl">order_id</span></div>
+        <div class="node">
+          <div class="nhead">order_items</div>
+          <div class="nbody">
+            <p>แตกบิลเป็นรายการสินค้า — สินค้าอะไร กี่ชิ้น ราคาต่อหน่วย</p>
+            <p class="keyline"><span class="tag fk">FK</span> <span class="mono">order_id</span> → orders</p>
+          </div>
+        </div>
+        <div class="arrow"><span class="line">→</span><span class="lbl">product_id</span></div>
+        <div class="node accent">
+          <div class="nhead">products</div>
+          <div class="nbody">
+            <p>แต่ละรายการอ้างกลับไปยังสินค้าที่ขาย</p>
+            <p class="keyline"><span class="tag fk">FK</span> <span class="mono">product_id</span> → products</p>
+          </div>
+        </div>
+      </div>
+      <div class="note-card">
+        💡 <strong>snapshot ราคา:</strong> <span class="mono">order_items.price</span> คัดลอกราคา ณ ตอนสั่งซื้อ แยกจาก <span class="mono">products.price</span> — ถ้าภายหลังปรับราคาสินค้า ยอดในบิลเก่าจะไม่เปลี่ยน
+      </div>
+    </div>
+
+    <!-- Stage 3 -->
+    <div class="flow-stage">
+      <h2><span class="num">3</span> สถานะคำสั่งซื้อ (lifecycle)</h2>
+      <p class="lead">ค่าในคอลัมน์ <span class="tag fk" style="color:#1d4ed8;background:#eff6ff;border-color:#bfdbfe">ENUM</span> <code style="font-family:'JetBrains Mono',monospace">orders.status</code> ไล่ไปตามขั้นตอนการจัดส่ง</p>
+      <div class="lifecycle">
+        <span class="pill p1">processing</span>
+        <span class="step-arrow">→</span>
+        <span class="pill p2">received</span>
+        <span class="step-arrow">→</span>
+        <span class="pill p3">delivered</span>
+      </div>
+    </div>
+
+    <!-- Stage 4: Auth -->
+    <div class="flow-stage">
+      <h2><span class="num">4</span> ระบบยืนยันตัวตน (better-auth)</h2>
+      <p class="lead">subsystem แยกต่างหากสำหรับสมัคร/ล็อกอิน — ทุกตารางหมุนรอบ <code style="font-family:'JetBrains Mono',monospace">user</code></p>
+      <div class="flow-row">
+        <div class="node green">
+          <div class="nhead">user</div>
+          <div class="nbody">
+            <p>บัญชีผู้ใช้: ชื่อ อีเมล สถานะยืนยันอีเมล</p>
+            <p class="keyline">ออก <span class="tag pk">PK</span> <span class="mono">id</span></p>
+          </div>
+        </div>
+        <div class="arrow"><span class="line">→</span><span class="lbl">userId · CASCADE</span></div>
+        <div class="node">
+          <div class="nhead">session</div>
+          <div class="nbody">
+            <p>เซสชันการล็อกอิน (token, หมดอายุ, IP/agent)</p>
+            <p class="keyline"><span class="tag fk">FK</span> <span class="mono">userId</span> → user</p>
+          </div>
+        </div>
+      </div>
+      <div class="flow-row" style="margin-top:18px;">
+        <div class="node accent">
+          <div class="nhead">account</div>
+          <div class="nbody">
+            <p>วิธีล็อกอินของผู้ใช้ — รหัสผ่าน หรือ provider (Google ฯลฯ) เก็บ token</p>
+            <p class="keyline"><span class="tag fk">FK</span> <span class="mono">userId</span> → user · CASCADE</p>
+          </div>
+        </div>
+        <div class="arrow" style="visibility:hidden;"><span class="line">→</span></div>
+        <div class="node" style="border-style:dashed;">
+          <div class="nhead" style="background:linear-gradient(180deg,#6b7280,#4b5563);">verification</div>
+          <div class="nbody">
+            <p>โทเคนยืนยันอีเมล / รีเซ็ตรหัสผ่าน (ชั่วคราว)</p>
+            <p class="keyline">ตารางอิสระ — ไม่มี FK</p>
+          </div>
+        </div>
+      </div>
+      <div class="note-card" style="background:#ecfeff;border-color:#a5f3fc;color:#155e75;">
+        📌 <strong>หมายเหตุ:</strong> กลุ่ม auth (<span class="mono">user</span>) ปัจจุบัน <strong>ยังไม่เชื่อม</strong> กับ <span class="mono">customers</span> ของฝั่งร้านค้า — เป็นคนละ subsystem ถ้าต้องการผูกผู้ใช้ที่ล็อกอินเข้ากับลูกค้า/คำสั่งซื้อ ต้องเพิ่ม FK เชื่อมในอนาคต
+      </div>
+    </div>
+
+  </section>
+
+  <footer>สร้างจาก schema จริงในฐานข้อมูล · <code>docs/er_diagram.html</code></footer>
+</div>
+
+<script>
+  // ---------- Tab switching ----------
+  function showTab(which) {
+    const isER = which === "er";
+    document.getElementById("panel-er").classList.toggle("active", isER);
+    document.getElementById("panel-wf").classList.toggle("active", !isER);
+    document.getElementById("tab-er").classList.toggle("active", isER);
+    document.getElementById("tab-wf").classList.toggle("active", !isER);
+    // เส้นโยง SVG วัดตำแหน่งได้เฉพาะตอน panel ER แสดงอยู่ → วาดใหม่เมื่อสลับมา
+    if (isER) redraw();
+  }
+
+  // ---------- ER relationship wires (SVG) ----------
+  const RELATIONS = [
+    { from: "categories.id",   to: "products.category_id",        color: "#2563eb" },
+    { from: "products.id",     to: "product_images.product_id",   color: "#db2777" },
+    { from: "customers.id",    to: "orders.customer_id",          color: "#16a34a" },
+    { from: "orders.id",       to: "order_items.order_id",        color: "#7c3aed" },
+    { from: "products.id",     to: "order_items.product_id",      color: "#ea580c" },
+    { from: "user.id",         to: "session.userId",              color: "#0891b2" },
+    { from: "user.id",         to: "account.userId",              color: "#0d9488" },
+  ];
+
+  const svg = document.getElementById("wires");
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const anchorPoint = (name) => document.querySelector(`[data-anchor="${name}"]`);
+
+  function draw() {
+    if (!document.getElementById("panel-er").classList.contains("active")) return;
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const canvas = document.querySelector(".canvas");
+    const base = canvas.getBoundingClientRect();
+    svg.setAttribute("viewBox", `0 0 ${base.width} ${base.height}`);
+
+    for (const rel of RELATIONS) {
+      const sRow = anchorPoint(rel.from);
+      const tRow = anchorPoint(rel.to);
+      if (!sRow || !tRow) continue;
+
+      const s = sRow.getBoundingClientRect();
+      const t = tRow.getBoundingClientRect();
+
+      const sLeft = !(s.left + s.width / 2 < t.left + t.width / 2);
+      const sx = (sLeft ? s.left : s.right) - base.left;
+      const sy = s.top + s.height / 2 - base.top;
+      const tLeft = !sLeft;
+      const tx = (tLeft ? t.left : t.right) - base.left;
+      const ty = t.top + t.height / 2 - base.top;
+
+      const dx = Math.max(40, Math.abs(tx - sx) * 0.4);
+      const c1x = sx + (sLeft ? -dx : dx);
+      const c2x = tx + (tLeft ? -dx : dx);
+
+      const path = document.createElementNS(SVGNS, "path");
+      path.setAttribute("d", `M ${sx} ${sy} C ${c1x} ${sy}, ${c2x} ${ty}, ${tx} ${ty}`);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", rel.color);
+      path.setAttribute("stroke-width", "2.2");
+      path.setAttribute("opacity", "0.9");
+      svg.appendChild(path);
+
+      const one = document.createElementNS(SVGNS, "circle");
+      one.setAttribute("cx", sx); one.setAttribute("cy", sy);
+      one.setAttribute("r", "4.5"); one.setAttribute("fill", rel.color);
+      svg.appendChild(one);
+
+      const dir = tLeft ? -1 : 1;
+      const fx = tx, fy = ty, len = 11, sp = 6;
+      const foot = document.createElementNS(SVGNS, "path");
+      foot.setAttribute("d",
+        `M ${fx + dir*len} ${fy - sp} L ${fx} ${fy} L ${fx + dir*len} ${fy + sp} M ${fx} ${fy} L ${fx + dir*len} ${fy}`);
+      foot.setAttribute("fill", "none");
+      foot.setAttribute("stroke", rel.color);
+      foot.setAttribute("stroke-width", "2.2");
+      svg.appendChild(foot);
+    }
+  }
+
+  const redraw = () => requestAnimationFrame(draw);
+  window.addEventListener("load", redraw);
+  window.addEventListener("resize", redraw);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+  setTimeout(redraw, 300);
+  setTimeout(redraw, 800);
+</script>
+</body>
+</html>
