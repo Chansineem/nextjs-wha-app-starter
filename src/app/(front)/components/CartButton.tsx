@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import type { ProductCardItem } from "@/components/features-product";
 import { useCartStore } from "@/lib/cart-store";
-import { ChevronRight } from "lucide-react";
+import { RiShoppingCart2Line } from "@remixicon/react";
 
 type Props = {
   product: ProductCardItem;
@@ -22,10 +22,11 @@ export default function CartButton({ product }: Props) {
   }
 
   return (
-    <>
-        <Button className="mt-6 shadow-none" onClick={handleAddItem}>
-            หยิบใส่ตะกร้า <ChevronRight />
-        </Button> 
-    </>
+    <Button
+      className="mt-3 w-full rounded-full shadow-none"
+      onClick={handleAddItem}
+    >
+      <RiShoppingCart2Line /> หยิบใส่ตะกร้า
+    </Button>
   );
 }

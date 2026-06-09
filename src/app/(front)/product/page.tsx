@@ -8,9 +8,17 @@ export const metadata: Metadata = {
   description: "รายการสินค้าจากฐานข้อมูล eCommerce",
 };
 
+type SearchParams = Promise<{ q?: string; cat?: string }>;
+
 // http://localhost:3000/product
-export default async function ProductPage() {
+export default async function ProductPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   await connection(); // signals this is a dynamic route
+  const { q, cat } = await searchParams;
+
   const products = await prisma.products.findMany({
     include: {
       categories: true,
@@ -35,9 +43,26 @@ export default async function ProductPage() {
     imageName: product.product_images[0]?.image_name ?? null,
   }));
 
+  const categories = [...new Set(serializedProducts.map((p) => p.categoryName))];
+
+  const keyword = q?.trim().toLowerCase();
+  const filtered = serializedProducts.filter((p) => {
+    const matchesCat = !cat || p.categoryName === cat;
+    const matchesQuery =
+      !keyword ||
+      p.name.toLowerCase().includes(keyword) ||
+      p.description.toLowerCase().includes(keyword);
+    return matchesCat && matchesQuery;
+  });
+
   return (
     <main>
-      <FeaturesProduct products={serializedProducts} />
+      <FeaturesProduct
+        products={filtered}
+        categories={categories}
+        activeCat={cat}
+        query={q?.trim() || undefined}
+      />
     </main>
   );
 }

@@ -1,69 +1,69 @@
-import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { NavMenu } from "@/components/nav-menu";
 import { NavigationSheet } from "@/components/navigation-sheet";
 import Link from "next/link";
-import { Badge } from "./ui/badge";
-import { ShoppingBasket } from "lucide-react";
+import { RiShoppingCart2Line } from "@remixicon/react";
 import CountCartItem from "@/app/(front)/components/CountCartItem";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import LogoutButton from "./logout-button";
+import ThemeToggle from "./theme-toggle";
+import AppSearch from "./app-search";
+import { Button } from "./ui/button";
 
 const Navbar = async () => {
   const session = await auth.api.getSession({
-    headers: await headers()
+    headers: await headers(),
   });
 
   return (
-    <nav className="h-16 border-b bg-background">
-      <div className="mx-auto flex h-full max-w-(--breakpoint-xl) items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 h-14 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto flex h-full max-w-7xl items-center gap-3 px-4 sm:gap-4 sm:px-6">
+        {/* Left — logo + primary nav */}
         <Logo />
+        <NavMenu className="ml-1 hidden lg:flex" />
 
-        {/* Desktop Menu */}
-        <NavMenu className="hidden md:block" />
+        {/* Center — search */}
+        <AppSearch className="mx-auto hidden w-full max-w-md md:flex" />
 
-        <Link href="/cart">
-          <Badge className="p-2 text-md">
-            <ShoppingBasket /> <CountCartItem /> ชิ้น
-          </Badge>
-        </Link>
+        {/* Right — actions */}
+        <div className="ml-auto flex items-center gap-1 sm:gap-2 md:ml-0">
+          <ThemeToggle />
 
-        <div className="flex items-center gap-3">
-          
-          {
-            !session && (
-              <>
-                <Button asChild className="hidden sm:inline-flex" variant="outline">
-                  <Link href="/login">เข้าสู่ระบบ</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/signup">สมัครสมาชิก</Link>
-                </Button>
-              </>
-            )
-          }
+          <Button asChild variant="ghost" size="icon">
+            <Link href="/cart" aria-label="ตะกร้าสินค้า" className="relative">
+              <RiShoppingCart2Line />
+              <CountCartItem />
+            </Link>
+          </Button>
 
-          {
-            session && (
-              <>
-                <div className="flex items-center mr-4">
-                  สวัสดี, {session.user.name}
-                </div>
-                <div>
-                  <LogoutButton />
-                </div>
-              </>
-            )
-          }
+          {!session && (
+            <>
+              <Button asChild variant="ghost" className="hidden rounded-full sm:inline-flex">
+                <Link href="/login">เข้าสู่ระบบ</Link>
+              </Button>
+              <Button asChild className="rounded-full">
+                <Link href="/signup">สมัครสมาชิก</Link>
+              </Button>
+            </>
+          )}
 
-          {/* Mobile Menu */}
-          <div className="md:hidden">
+          {session && (
+            <>
+              <span className="hidden text-sm text-muted-foreground lg:inline">
+                สวัสดี, {session.user.name}
+              </span>
+              <LogoutButton />
+            </>
+          )}
+
+          {/* Mobile menu */}
+          <div className="lg:hidden">
             <NavigationSheet />
           </div>
         </div>
       </div>
-    </nav>
+    </header>
   );
 };
 
