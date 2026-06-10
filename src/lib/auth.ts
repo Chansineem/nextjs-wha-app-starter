@@ -11,5 +11,17 @@ export const auth = betterAuth({
         autoSignIn: false,
         requireEmailVerification: false,
         minPasswordLength: 8
-    }
+    },
+    user: {
+        additionalFields: {
+            // ผูกกับคอลัมน์ role ใน User เพื่อให้ session.user.role ใช้งานได้
+            // input: false → กันไม่ให้ client ตั้ง role ตอนสมัครเอง
+            role: {
+                type: "string",
+                required: false,
+                defaultValue: "user",
+                input: false,
+            },
+        },
+    },
 });
