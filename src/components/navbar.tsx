@@ -2,7 +2,7 @@ import { Logo } from "@/components/logo";
 import { NavMenu } from "@/components/nav-menu";
 import { NavigationSheet } from "@/components/navigation-sheet";
 import Link from "next/link";
-import { RiShoppingCart2Line } from "@remixicon/react";
+import { RiDashboardLine, RiShoppingCart2Line } from "@remixicon/react";
 import CountCartItem from "@/app/(front)/components/CountCartItem";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -53,6 +53,14 @@ const Navbar = async () => {
               <span className="hidden text-sm text-muted-foreground lg:inline">
                 สวัสดี, {session.user.name}
               </span>
+              {session.user.role === "admin" && (
+                <Button asChild variant="outline" size="sm" className="rounded-full">
+                  <Link href="/dashboard" aria-label="ไปหน้าผู้ดูแลระบบ">
+                    <RiDashboardLine data-icon="inline-start" />
+                    <span className="hidden sm:inline">ดูแลระบบ</span>
+                  </Link>
+                </Button>
+              )}
               <LogoutButton />
             </>
           )}
